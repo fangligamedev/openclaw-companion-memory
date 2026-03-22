@@ -40,6 +40,20 @@ async function runTests() {
             }
             // 模拟 Autonomous Drive 决定生命周期行为
             if (sys.includes('自主大脑')) {
+                // 模拟根据时间流逝产生不同思维状态
+                const hour = new Date().getHours();
+                if (hour < 12) {
+                    return {
+                        text: JSON.stringify({
+                            activity: "你昨晚睡得好晚，现在还在睡吗？自己随便看看视频。",
+                            emotional_tone: "平静略带关心",
+                            should_message: false,
+                            message_intent: "",
+                            search_needed: ""
+                        })
+                    };
+                }
+                
                 return {
                     text: JSON.stringify({
                         activity: "在想你刚才说的那句话，思考模拟的情绪算不算真实。",
