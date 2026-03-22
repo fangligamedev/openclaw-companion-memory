@@ -31,14 +31,14 @@
 确保你已经全局安装了 [Openclaw](https://github.com/openclaw/openclaw)：
 
 ```bash
-git clone https://github.com/your-repo/openclaw-companion-memory.git
+git clone https://github.com/fangligamedev/openclaw-companion-memory.git
 cd openclaw-companion-memory
 npm install
 npm run build
 openclaw skill link ./
 ```
 
-*(注意：在 Openclaw 中，插件声明文件为 `SKILL.md`。项目已自带配置，龙虾 Lobster 也可以通过这个文件识别技能的触发条件和前置依赖。)*
+*(注意：在 Openclaw 中，插件声明文件为 `SKILL.md`。项目已自带配置，Openclaw 也可以通过这个文件识别技能的触发条件和前置依赖。)*
 
 ### 2. 活人感恋爱陪伴 System Prompt 模板 (直接抄作业)
 

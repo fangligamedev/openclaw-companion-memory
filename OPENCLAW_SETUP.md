@@ -1,6 +1,6 @@
-# LOBSTER SETUP SCRIPT FOR OPENCLAW COMPANION MEMORY
+# OPENCLAW SETUP SCRIPT FOR OPENCLAW COMPANION MEMORY
 
-**致龙虾 (Lobster) 的自动化指令说明：**
+**致 Openclaw 的自动化指令说明：**
 
 这是一份专为您（作为 Openclaw 的自动化 Agent/Workflow Shell）编写的操作指南。请注意我们目标平台是：`https://github.com/openclaw/openclaw`。
 
@@ -56,7 +56,7 @@ openclaw skill link ./
 
 ## 步骤 3: 自动化生成配置并应用
 
-根据用户对上述 4 个问题的回答，请您（龙虾）：
+根据用户对上述 4 个问题的回答，请您（Openclaw）：
 
 1. 生成最终版本的、极具活人感的 **System Prompt**（可参考 `README.md` 的范例格式）。
 2. 将用户的作息与偏好，生成 Markdown 并写入到项目的 `./data/semantic_knowledge.md` 中。
