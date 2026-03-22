@@ -28,17 +28,38 @@
 
 ### 1. 安装与挂载
 
-确保你已经全局安装了 [Openclaw](https://github.com/openclaw/openclaw)：
+根据 OpenClaw 的技能 (Skill) 挂载规范，我们为您提供两种安装方式：
+
+#### 🤖 方式一：给 Openclaw 看的全自动安装（强烈推荐）
+
+如果您已经在终端或任意聊天通道中唤醒了 OpenClaw Agent，您可以直接把本项目的装配指南发送给它，让它全自动为您配置：
+
+> “请帮我安装一个陪伴记忆插件，请阅读并严格执行这个自动化装配指令文件：`https://raw.githubusercontent.com/fangligamedev/openclaw-companion-memory/main/OPENCLAW_SETUP.md`”
+
+OpenClaw 收到此指令后，会自动阅读 `OPENCLAW_SETUP.md` 文件内的配置脚本，为您完成代码克隆、依赖安装、`openclaw skill link ./` 技能挂载，并像“相亲编导”一样主动向您提出四个问题，全自动生成您的专属 AI 伴侣并配置底层初始记忆。
+
+#### 🧑‍💻 方式二：给人类看的手动安装说明
+
+如果您需要手动部署或进行二次开发，请确保您已经全局安装了 [OpenClaw](https://github.com/openclaw/openclaw)（例如 `npm install -g openclaw@latest`）。
+
+1. **拉取源码并编译：**
 
 ```bash
 git clone https://github.com/fangligamedev/openclaw-companion-memory.git
 cd openclaw-companion-memory
 npm install
 npm run build
+```
+
+2. **执行标准 Skill 挂载：**
+
+利用 OpenClaw 官方的 skill CLI 工具，将当前项目目录挂载至 OpenClaw 的 workspace 中：
+
+```bash
 openclaw skill link ./
 ```
 
-*(注意：在 Openclaw 中，插件声明文件为 `SKILL.md`。项目已自带配置，Openclaw 也可以通过这个文件识别技能的触发条件和前置依赖。)*
+*(技术细节：在 OpenClaw 生态中，插件声明文件为 `SKILL.md`。OpenClaw 核心引擎将直接读取该文件来识别本技能的触发条件、上下文权限与前置依赖。)*
 
 ### 2. 活人感恋爱陪伴 System Prompt 模板 (直接抄作业)
 
