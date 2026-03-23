@@ -22,7 +22,7 @@
 
 可选 **`data/companion-memory.config.json`**：13 个标量（对话条数、快照条数、各阶段 temperature、life_tick 作息窗口等），便于本地调试。字段含义与合并顺序见 **[CONFIG.md](./CONFIG.md)**；示例见 `data/companion-memory.config.example.json`。
 
-与 **OpenClaw 官方工作区记忆**（`MEMORY.md` / `memory_search` 等）如何并存、桥接，使游戏档内容日后仍能被官方检索：**[docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md](./docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md)**。
+待开发（TODO）：与 **OpenClaw 官方工作区记忆**（`MEMORY.md` / `memory_search` 等）如何并存、桥接，使游戏档内容日后仍能被官方检索：**[docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md](./docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md)**。
 
 ---
 
