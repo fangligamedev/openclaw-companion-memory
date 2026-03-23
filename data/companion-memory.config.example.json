@@ -1,0 +1,15 @@
+{
+  "defaultSummarizeTranscriptLimit": 50,
+  "querySnapshotCount": 3,
+  "lifeTickAutonomousStateCount": 3,
+  "lifeTickQuietNightStartHour": 23,
+  "lifeTickQuietMorningEndHour": 7,
+  "temperatureEpisodicSummarize": 0.3,
+  "temperatureSemanticExtract": 0.2,
+  "temperatureConsolidateKnowledge": 0.1,
+  "temperatureLifeTick": 0.7,
+  "storageDefaultTranscriptLimit": 20,
+  "storageDefaultSnapshotLimit": 10,
+  "storageDefaultMonologueLimit": 10,
+  "storageDefaultAutonomousStateLimit": 5
+}

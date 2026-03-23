@@ -1,3 +1,4 @@
+import type { CompanionMemoryConfig } from '../config/companionMemoryConfig';
 import { StorageService } from './StorageService';
 import { CognitiveProcessor } from './CognitiveProcessor';
 
@@ -9,11 +10,18 @@ export class AutonomousManager {
     private storage: StorageService;
     private cognitive: CognitiveProcessor;
     private llmProvider: any;
+    private readonly memoryConfig: CompanionMemoryConfig;
 
-    constructor(storage: StorageService, cognitive: CognitiveProcessor, llmProvider: any) {
+    constructor(
+        storage: StorageService,
+        cognitive: CognitiveProcessor,
+        llmProvider: any,
+        memoryConfig: CompanionMemoryConfig,
+    ) {
         this.storage = storage;
         this.cognitive = cognitive;
         this.llmProvider = llmProvider;
+        this.memoryConfig = memoryConfig;
     }
 
     /**
@@ -21,9 +29,14 @@ export class AutonomousManager {
      * 决定是否主动发送消息或只记录自主状态
      */
     public async lifeTick(currentTime: Date, lastInteractionTime: Date | null, lastMessage: string): Promise<any> {
-        // 判断静默期或睡眠时间
+        // 本地时钟「夜间 / 清晨」休眠窗口（可配，见 companionMemoryConfig）
         const hour = currentTime.getHours();
-        if (hour < 7 || hour > 23) {
+        const { lifeTickQuietNightStartHour, lifeTickQuietMorningEndHour } = this.memoryConfig;
+        const nightQuiet =
+            lifeTickQuietNightStartHour <= 23 && hour >= lifeTickQuietNightStartHour;
+        const morningQuiet = hour < lifeTickQuietMorningEndHour;
+        const inQuietHours = nightQuiet || morningQuiet;
+        if (inQuietHours) {
             this.storage.appendAutonomousState({ activity: 'Dormant state, organizing memories', shouldMessage: false });
             return null;
         }
@@ -31,7 +44,9 @@ export class AutonomousManager {
         const timeGapMs = lastInteractionTime ? currentTime.getTime() - lastInteractionTime.getTime() : 0;
         const gapHours = timeGapMs / (1000 * 60 * 60);
 
-        const recentStates = this.storage.getRecentAutonomousStates(3)
+        const recentStates = this.storage.getRecentAutonomousStates(
+            this.memoryConfig.lifeTickAutonomousStateCount,
+        )
             .map(s => `[${s.timestamp}] ${s.activity}`)
             .join('\n');
 
@@ -67,7 +82,7 @@ ${semanticKnowledge}
             const response = await this.llmProvider.complete({
                 system: systemPrompt,
                 messages: [{ role: 'user', content: '执行生命周期 Tick，给出自主活动的思考。' }],
-                temperature: 0.7
+                temperature: this.memoryConfig.temperatureLifeTick,
             });
 
             // 简单处理 JSON

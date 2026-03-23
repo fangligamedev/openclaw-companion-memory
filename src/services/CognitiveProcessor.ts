@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { CompanionMemoryConfig } from '../config/companionMemoryConfig';
 
 export const KnowledgeUpdateSchema = z.object({
     insertions: z.array(z.object({
@@ -22,9 +23,11 @@ export type KnowledgeUpdateType = z.infer<typeof KnowledgeUpdateSchema>;
  */
 export class CognitiveProcessor {
     private llmProvider: any; // 此处将由 OpenClaw 的 LLM Provider 注入
+    private readonly memoryConfig: CompanionMemoryConfig;
 
-    constructor(llmProvider: any) {
+    constructor(llmProvider: any, memoryConfig: CompanionMemoryConfig) {
         this.llmProvider = llmProvider;
+        this.memoryConfig = memoryConfig;
     }
 
     /**
@@ -49,7 +52,7 @@ ${conversationContext}`;
         const response = await this.llmProvider.complete({
             system: systemPrompt,
             messages: [{ role: 'user', content: 'Generate the episodic snapshot.' }],
-            temperature: 0.3
+            temperature: this.memoryConfig.temperatureEpisodicSummarize,
         });
 
         return response.text;
@@ -82,7 +85,8 @@ ${conversationContext}`;
         const response = await this.llmProvider.complete({
             system: systemPrompt,
             messages: [{ role: 'user', content: `请从以下对话中提取：\n${conversationChunk}` }],
-            responseFormat: "json_object"
+            responseFormat: 'json_object',
+            temperature: this.memoryConfig.temperatureSemanticExtract,
         });
 
         try {
@@ -121,7 +125,7 @@ ${JSON.stringify(newFacts, null, 2)}`;
         const response = await this.llmProvider.complete({
             system: systemPrompt,
             messages: [{ role: 'user', content: '整合更新后的 Markdown 记忆树给我。' }],
-            temperature: 0.1
+            temperature: this.memoryConfig.temperatureConsolidateKnowledge,
         });
 
         return response.text;

@@ -1,3 +1,9 @@
+import {
+  DEFAULT_COMPANION_MEMORY_CONFIG,
+  buildRuntimeMemoryOverrides,
+  loadAndResolveCompanionMemoryConfig,
+  resolveCompanionDataDir,
+} from './config/companionMemoryConfig';
 import { StorageService } from './services/StorageService';
 import { CognitiveProcessor } from './services/CognitiveProcessor';
 import { AutonomousManager } from './services/AutonomousManager';
@@ -38,19 +44,29 @@ export default class CognitiveMemorySkill implements Skill {
   private autonomous: AutonomousManager;
 
   constructor() {
-    // 默认存放在项目的 data 目录下
-    this.storage = new StorageService();
-    // 占位，等待 execute 时注入真实的 llm 供应商
-    this.cognitive = new CognitiveProcessor(null);
-    this.autonomous = new AutonomousManager(this.storage, this.cognitive, null);
+    // 默认存放在项目的 data 目录下；真实 dataDir / 配置在每次 execute 时按 ctx 解析
+    this.storage = new StorageService(undefined, DEFAULT_COMPANION_MEMORY_CONFIG);
+    this.cognitive = new CognitiveProcessor(null, DEFAULT_COMPANION_MEMORY_CONFIG);
+    this.autonomous = new AutonomousManager(
+      this.storage,
+      this.cognitive,
+      null,
+      DEFAULT_COMPANION_MEMORY_CONFIG,
+    );
   }
 
   async execute(ctx: SkillContext): Promise<SkillResult> {
     const { action, payload } = ctx.params;
 
-    // 注入当前上下文的 LLM 实例
-    this.cognitive = new CognitiveProcessor(ctx.llm);
-    this.autonomous = new AutonomousManager(this.storage, this.cognitive, ctx.llm);
+    const dataDir = resolveCompanionDataDir(ctx.params);
+    const memoryConfig = loadAndResolveCompanionMemoryConfig({
+      dataDir,
+      runtimeOverrides: buildRuntimeMemoryOverrides(ctx.params),
+    });
+
+    this.storage = new StorageService(dataDir, memoryConfig);
+    this.cognitive = new CognitiveProcessor(ctx.llm, memoryConfig);
+    this.autonomous = new AutonomousManager(this.storage, this.cognitive, ctx.llm, memoryConfig);
 
     switch (action) {
       case 'record_dialogue':
@@ -58,8 +74,9 @@ export default class CognitiveMemorySkill implements Skill {
         return { success: true, message: 'Dialogue recorded.' };
 
       case 'summarize_episodic':
-        // 定期打包历史对话
-        const recentMessages = this.storage.getTranscript(payload.limit || 50);
+        // 定期打包历史对话（payload.limit 优先于配置 defaultSummarizeTranscriptLimit）
+        const transcriptLimit = payload?.limit ?? memoryConfig.defaultSummarizeTranscriptLimit;
+        const recentMessages = this.storage.getTranscript(transcriptLimit);
         const snapshotStr = await this.cognitive.summarizeEpisodic(recentMessages);
         this.storage.appendSnapshot({
             timestamp: new Date().toISOString(),
@@ -86,9 +103,13 @@ export default class CognitiveMemorySkill implements Skill {
         return { success: true, data: decision };
 
       case 'query_cognitive_fs':
-        // 提供给 Agent 的检索工具
+        // 提供给 Agent 的检索工具（payload.snapshotCount 优先于配置 querySnapshotCount）
         const knowledgeTree = this.storage.readSemanticKnowledge();
-        const recentSnaps = this.storage.getRecentSnapshots(3).map(s => s.snapshot).join('\n\n');
+        const snapshotCount = payload?.snapshotCount ?? memoryConfig.querySnapshotCount;
+        const recentSnaps = this.storage
+          .getRecentSnapshots(snapshotCount)
+          .map((s) => s.snapshot)
+          .join('\n\n');
         return { 
             success: true, 
             data: { 

@@ -12,6 +12,59 @@ config:
     type: string
     description: "Path to the local data directory. Defaults to './data'"
     required: false
+  # 以下 13 项与代码内默认值一致；也可写入 {dataDir}/companion-memory.config.json（见仓库 CONFIG.md）
+  defaultSummarizeTranscriptLimit:
+    type: number
+    description: "summarize_episodic 未传 payload.limit 时读取的对话条数上限"
+    required: false
+  querySnapshotCount:
+    type: number
+    description: "query_cognitive_fs 返回的最近情景快照条数（0=仅长期 md）"
+    required: false
+  lifeTickAutonomousStateCount:
+    type: number
+    description: "life_tick 提示中附带的最近自主状态条数"
+    required: false
+  lifeTickQuietNightStartHour:
+    type: number
+    description: "本地小时；>= 该值进入夜间休眠。24=关闭夜间支路（仅清晨规则仍生效）"
+    required: false
+  lifeTickQuietMorningEndHour:
+    type: number
+    description: "本地小时 0-23；< 该值处于清晨休眠"
+    required: false
+  temperatureEpisodicSummarize:
+    type: number
+    description: "情景快照 LLM temperature"
+    required: false
+  temperatureSemanticExtract:
+    type: number
+    description: "语义事实抽取 LLM temperature"
+    required: false
+  temperatureConsolidateKnowledge:
+    type: number
+    description: "合并 semantic_knowledge.md 的 LLM temperature"
+    required: false
+  temperatureLifeTick:
+    type: number
+    description: "life_tick 决策 JSON 的 LLM temperature"
+    required: false
+  storageDefaultTranscriptLimit:
+    type: number
+    description: "getTranscript() 未传 limit 时的默认条数"
+    required: false
+  storageDefaultSnapshotLimit:
+    type: number
+    description: "getRecentSnapshots() 未传 limit 时的默认条数"
+    required: false
+  storageDefaultMonologueLimit:
+    type: number
+    description: "getRecentMonologues() 未传 limit 时的默认条数"
+    required: false
+  storageDefaultAutonomousStateLimit:
+    type: number
+    description: "getRecentAutonomousStates() 未传 limit 时的默认条数"
+    required: false
 triggers:
   - keyword: ["remember", "what did we talk about", "memory"]
   - schedule: "0 * * * *"
@@ -46,7 +99,8 @@ triggers:
 
 ### 3. `action: "query_cognitive_fs"`
 **用途**: 主动检索深层关系事实和短期记忆摘要。**非常重要！当对方问你“你还记得我们聊了什么吗？”或你需要提取你们此前的关系设定时，请务必主动调用此 Tool。**
-**参数**: 无 (直接返回包含长期知识库和短期快照的对象)
+**参数**:
+- `payload.snapshotCount` (可选): 覆盖配置中的 `querySnapshotCount`；省略则使用 `{dataDir}/companion-memory.config.json` 或默认。
 
 ### 4. `action: "life_tick"`
 **用途**: 由 Cron 或你在后台自主决定的闲时唤醒，决定当前自主状态并生成主动发消息的决策。

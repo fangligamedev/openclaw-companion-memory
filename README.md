@@ -20,6 +20,10 @@
 4. **`internal_monologue.jsonl` (内在独白)**：那些没有直接发给你的“内心 OS”，比如：_（其实刚刚看到一个讲深海生物的视频，想分享给你）_。
 5. **`autonomous_state.jsonl` (自主状态)**：当你不理它的时候，定时任务（Life Tick）会让它自己去“看书”、“看深海生物科普视频”甚至“无聊发呆”，并且判断是否要主动去戳你。
 
+可选 **`data/companion-memory.config.json`**：13 个标量（对话条数、快照条数、各阶段 temperature、life_tick 作息窗口等），便于本地调试。字段含义与合并顺序见 **[CONFIG.md](./CONFIG.md)**；示例见 `data/companion-memory.config.example.json`。
+
+与 **OpenClaw 官方工作区记忆**（`MEMORY.md` / `memory_search` 等）如何并存、桥接，使游戏档内容日后仍能被官方检索：**[docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md](./docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md)**。
+
 ---
 
 ## 保姆级使用与配置范例

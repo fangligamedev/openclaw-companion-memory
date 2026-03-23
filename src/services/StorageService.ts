@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type { CompanionMemoryConfig } from '../config/companionMemoryConfig';
+import { DEFAULT_COMPANION_MEMORY_CONFIG } from '../config/companionMemoryConfig';
 
 /**
  * StorageService 负责管理所有持久化数据，采用追加和部分重写相结合的文件存储机制。
@@ -14,9 +16,11 @@ import * as path from 'path';
  */
 export class StorageService {
     private baseDir: string;
+    private readonly memoryConfig: CompanionMemoryConfig;
 
-    constructor(dataDir?: string) {
+    constructor(dataDir?: string, memoryConfig?: CompanionMemoryConfig) {
         this.baseDir = dataDir || path.join(process.cwd(), 'data');
+        this.memoryConfig = memoryConfig ?? DEFAULT_COMPANION_MEMORY_CONFIG;
         this.ensureDirExists(this.baseDir);
     }
 
@@ -86,9 +90,11 @@ export class StorageService {
         this.appendJsonl('episodic_snapshots.jsonl', snapshot);
     }
 
-    public getRecentSnapshots(limit: number = 10): any[] {
+    public getRecentSnapshots(limit?: number): any[] {
+        const n = limit ?? this.memoryConfig.storageDefaultSnapshotLimit;
+        if (n <= 0) return [];
         const all = this.readJsonl<any>('episodic_snapshots.jsonl');
-        return all.slice(-limit);
+        return all.slice(-n);
     }
 
     // ─── Internal Monologue (内在独白) ───
@@ -100,9 +106,11 @@ export class StorageService {
         });
     }
 
-    public getRecentMonologues(limit: number = 10): any[] {
+    public getRecentMonologues(limit?: number): any[] {
+        const n = limit ?? this.memoryConfig.storageDefaultMonologueLimit;
+        if (n <= 0) return [];
         const all = this.readJsonl<any>('internal_monologue.jsonl');
-        return all.slice(-limit);
+        return all.slice(-n);
     }
 
     // ─── Autonomous State (自主状态记录) ───
@@ -115,9 +123,11 @@ export class StorageService {
         this.appendJsonl('autonomous_state.jsonl', entry);
     }
 
-    public getRecentAutonomousStates(limit: number = 5): any[] {
+    public getRecentAutonomousStates(limit?: number): any[] {
+        const n = limit ?? this.memoryConfig.storageDefaultAutonomousStateLimit;
+        if (n <= 0) return [];
         const all = this.readJsonl<any>('autonomous_state.jsonl');
-        return all.slice(-limit);
+        return all.slice(-n);
     }
 
     // ─── Dialogue Transcript (原始对话记录) ───
@@ -131,8 +141,10 @@ export class StorageService {
         });
     }
 
-    public getTranscript(limit: number = 20): any[] {
+    public getTranscript(limit?: number): any[] {
+        const n = limit ?? this.memoryConfig.storageDefaultTranscriptLimit;
+        if (n <= 0) return [];
         const all = this.readJsonl<any>('dialogue_transcript.jsonl');
-        return all.slice(-limit);
+        return all.slice(-n);
     }
 }

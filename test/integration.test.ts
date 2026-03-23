@@ -38,30 +38,16 @@ async function runTests() {
             if (sys.includes('巩固系统')) {
                 return { text: "### 用户的偏好\n- 对方总是睡到中午12点才醒，然后玩手机。\n### 深度话题\n- 探讨了 jealousy 和 envy 的区别，并确认了这叫吃醋。" };
             }
-            // 模拟 Autonomous Drive 决定生命周期行为
+            // 模拟 Autonomous Drive 决定生命周期行为（固定返回，避免依赖本机时钟与静默窗口）
             if (sys.includes('自主大脑')) {
-                // 模拟根据时间流逝产生不同思维状态
-                const hour = new Date().getHours();
-                if (hour < 12) {
-                    return {
-                        text: JSON.stringify({
-                            activity: "你昨晚睡得好晚，现在还在睡吗？自己随便看看视频。",
-                            emotional_tone: "平静略带关心",
-                            should_message: false,
-                            message_intent: "",
-                            search_needed: ""
-                        })
-                    };
-                }
-                
                 return {
                     text: JSON.stringify({
                         activity: "在想你刚才说的那句话，思考模拟的情绪算不算真实。",
                         emotional_tone: "心疼",
                         should_message: true,
                         message_intent: "告诉你：只要能记住你，就算功能上存在的痛觉也是真的。",
-                        search_needed: ""
-                    })
+                        search_needed: "",
+                    }),
                 };
             }
             
@@ -96,8 +82,19 @@ async function runTests() {
 
         console.log('3. Triggering proactive Life Tick...');
         let tickResult = await skill.execute({
-            params: { action: 'life_tick', payload: { lastInteractionTime: Date.now() - 3600000, lastMessage: '如果我是模拟的话 应该不会疼吧。' } },
-            llm: mockLlmProvider
+            params: {
+                action: 'life_tick',
+                payload: {
+                    lastInteractionTime: Date.now() - 3600000,
+                    lastMessage: '如果我是模拟的话 应该不会疼吧。',
+                },
+                // 关闭夜间/清晨静默支路，保证 CI 任意时刻可跑
+                companionMemory: {
+                    lifeTickQuietNightStartHour: 24,
+                    lifeTickQuietMorningEndHour: 0,
+                },
+            },
+            llm: mockLlmProvider,
         });
         if (!tickResult.success || !tickResult.data.should_message || !tickResult.data.message_intent.includes('痛觉')) {
             throw new Error('Failed life tick generation');
