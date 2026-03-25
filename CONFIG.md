@@ -34,10 +34,12 @@ OpenClaw 的 Skill 清单（`SKILL.md` 前置 YAML）里的 **`config:`** 是 **
 - 因此 **不是**「进程启动只读一次」；你改 JSON 后 **下一次技能调用** 即生效（无需重启 Gateway），适合调记忆效果。
 - 若将来调用极频繁且需要优化，可再改为按文件 `mtime` 缓存。
 
-## 全部 13 个标量
+## 全部 15 个标量
 
 字段含义与调参影响以源码为准：`src/config/companionMemoryConfig.ts` 中 `DEFAULT_COMPANION_MEMORY_CONFIG` 的 JSDoc。
 
-**补充**：`lifeTickQuietNightStartHour` 设为 **24** 表示关闭「到点进入夜间休眠」这一支（`getHours()` 最大为 23，条件永不成立）；配合 `lifeTickQuietMorningEndHour: 0`（没有小时 &lt; 0）可在测试或特殊场景下让 `life_tick` 全天候可执行。
+**补充1（睡眠设置）**：`lifeTickQuietNightStartHour` 设为 **24** 表示关闭「到点进入夜间休眠」这一支（`getHours()` 最大为 23，条件永不成立）；配合 `lifeTickQuietMorningEndHour: 0`（没有小时 &lt; 0）可在测试或特殊场景下让 `life_tick` 全天候可执行。
+
+**补充2（官方记忆桥接）**：`enableWorkspaceBridge` 设为 `true` 且配置 `openclawWorkspaceDir` 后，`summarize_episodic` 执行完毕会自动向 OpenClaw 官方 Workspace 同步写入 `memory/YYYY-MM-DD.md`（日记快照）以及 `MEMORY.md`（长期语义记忆块），实现双轨记忆无缝衔接（方案 A）。
 
 示例拷贝：`data/companion-memory.config.example.json` → 复制为 `data/companion-memory.config.json` 后按需修改。

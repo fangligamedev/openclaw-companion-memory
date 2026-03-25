@@ -20,9 +20,31 @@
 4. **`internal_monologue.jsonl` (内在独白)**：那些没有直接发给你的“内心 OS”，比如：_（其实刚刚看到一个讲深海生物的视频，想分享给你）_。
 5. **`autonomous_state.jsonl` (自主状态)**：当你不理它的时候，定时任务（Life Tick）会让它自己去“看书”、“看深海生物科普视频”甚至“无聊发呆”，并且判断是否要主动去戳你。
 
-可选 **`data/companion-memory.config.json`**：13 个标量（对话条数、快照条数、各阶段 temperature、life_tick 作息窗口等），便于本地调试。字段含义与合并顺序见 **[CONFIG.md](./CONFIG.md)**；示例见 `data/companion-memory.config.example.json`。
+可选 **`data/companion-memory.config.json`**：15 个标量（对话条数、快照条数、各阶段 temperature、life_tick 作息窗口、**官方工作区桥接**等），便于本地调试。字段含义与合并顺序见 **[CONFIG.md](./CONFIG.md)**；示例见 `data/companion-memory.config.example.json`。
 
-待开发（TODO）：与 **OpenClaw 官方工作区记忆**（`MEMORY.md` / `memory_search` 等）如何并存、桥接，使游戏档内容日后仍能被官方检索：**[docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md](./docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md)**。
+## 双轨记忆与 OpenClaw 官方记忆桥接
+
+本系统原生支持与 **OpenClaw 官方工作区记忆**（`MEMORY.md` / `memory_search`）的“双轨并行”同步方案，使游戏档与日常聊天能够无缝衔接。
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     OpenClaw Gateway / Agent                       │
+│  ┌──────────────┐    ┌─────────────────────────────────────────┐ │
+│  │ 官方记忆层    │    │ Skill：openclaw-him-memory（游戏/RPG 档）  │ │
+│  │ MEMORY.md    │◄───┤ 桥接：同步摘要/事实 → workspace MD        │ │
+│  │ memory/*.md  │    │ data/: transcript / snapshots / semantic  │ │
+│  │ memory_search│    │ query_cognitive_fs / life_tick / …        │ │
+│  └──────────────┘    └─────────────────────────────────────────┘ │
+│         ▲                              ▲                          │
+│         │                              │                          │
+│   索引 / 注入                    Cron / 每轮钩子调用               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**机制说明**：
+- **独立游玩档**：在 `data/` 目录下维护游戏的高频日记和语义知识，不会污染全局上下文。
+- **自动归档桥接**：在配置文件中开启 `enableWorkspaceBridge: true` 并配置 `openclawWorkspaceDir` 后，每次进行 `summarize_episodic` 时，系统会自动将“最新剧情快照”追加到官方工作区的每日日记 `memory/YYYY-MM-DD.md` 中，并将长线事实同步覆盖到 `MEMORY.md` 特定的区块内。
+- **全局可检**：即使在未来的日常对话中（或卸载 Skill 后），OpenClaw 依然能通过官方的 `memory_search` 搜到游戏内产生的关键羁绊设定。详情设计见：**[docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md](./docs/DUAL_MEMORY_OPENCLAW_INTEGRATION_PLAN.md)**。
 
 ---
 

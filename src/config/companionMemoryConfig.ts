@@ -7,6 +7,8 @@ import { z } from 'zod';
  * 使用 zod 在启动/每次 execute 时校验，避免 JSON 手滑写成字符串导致静默错误。
  */
 export const CompanionMemoryConfigSchema = z.object({
+  enableWorkspaceBridge: z.boolean(),
+  openclawWorkspaceDir: z.string(),
   defaultSummarizeTranscriptLimit: z.number().int().positive().max(2000),
   querySnapshotCount: z.number().int().min(0).max(100),
   lifeTickAutonomousStateCount: z.number().int().min(0).max(50), // 0 = 不在 prompt 中附带历史自主状态
@@ -34,6 +36,16 @@ export type CompanionMemoryConfig = z.infer<typeof CompanionMemoryConfigSchema>;
  * 每一项上方注释说明：**调大/调小对行为与成本的影响**。
  */
 export const DEFAULT_COMPANION_MEMORY_CONFIG: CompanionMemoryConfig = {
+  /**
+   * 是否启用将记忆自动同步到 OpenClaw 官方工作区 (A 方案)。
+   */
+  enableWorkspaceBridge: false,
+
+  /**
+   * OpenClaw 官方工作区的绝对路径。若为空且开启桥接，则尝试使用默认路径 `~/.openclaw/workspace`。
+   */
+  openclawWorkspaceDir: '',
+
   /**
    * `summarize_episodic` 在 **未** 传 `payload.limit` 时，从 `dialogue_transcript.jsonl` 末尾取多少条消息做「情景快照」。
    * - **调大**：单次归档看到的上下文更长，快照更易连贯，但 **Token 与费用上升**，且容易把多主题糊成一段。
@@ -129,6 +141,8 @@ export type CompanionMemoryConfigInput = Partial<CompanionMemoryConfig> | undefi
 
 /** 与 SKILL.md `config` 块、JSON 文件字段名一致（供宿主扁平注入 ctx.params） */
 export const COMPANION_MEMORY_FLAT_KEYS = [
+  'enableWorkspaceBridge',
+  'openclawWorkspaceDir',
   'defaultSummarizeTranscriptLimit',
   'querySnapshotCount',
   'lifeTickAutonomousStateCount',

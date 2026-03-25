@@ -12,7 +12,15 @@ config:
     type: string
     description: "Path to the local data directory. Defaults to './data'"
     required: false
-  # 以下 13 项与代码内默认值一致；也可写入 {dataDir}/companion-memory.config.json（见仓库 CONFIG.md）
+  # 以下 15 项与代码内默认值一致；也可写入 {dataDir}/companion-memory.config.json（见仓库 CONFIG.md）
+  enableWorkspaceBridge:
+    type: boolean
+    description: "是否开启双轨记忆桥接（同步至官方 Workspace，方案 A）"
+    required: false
+  openclawWorkspaceDir:
+    type: string
+    description: "OpenClaw 官方 Workspace 路径（仅在 enableWorkspaceBridge=true 时生效）"
+    required: false
   defaultSummarizeTranscriptLimit:
     type: number
     description: "summarize_episodic 未传 payload.limit 时读取的对话条数上限"

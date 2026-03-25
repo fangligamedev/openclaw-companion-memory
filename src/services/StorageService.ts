@@ -147,4 +147,55 @@ export class StorageService {
         const all = this.readJsonl<any>('dialogue_transcript.jsonl');
         return all.slice(-n);
     }
+
+    // ─── Workspace Bridge (官方工作区桥接) ───
+
+    /**
+     * 将快照片段追加到官方工作区的每日日记中 (memory/YYYY-MM-DD.md)
+     */
+    public appendToWorkspaceDailyMemory(workspaceDir: string, content: string): void {
+        if (!workspaceDir) return;
+        const memoryDir = path.join(workspaceDir, 'memory');
+        this.ensureDirExists(memoryDir);
+
+        const date = new Date();
+        const dateString = date.toISOString().split('T')[0];
+        const filePath = path.join(memoryDir, `${dateString}.md`);
+
+        const timeString = date.toTimeString().split(' ')[0];
+        const appendContent = `\n\n## 伴侣记忆快照 (${timeString})\n${content}\n`;
+        fs.appendFileSync(filePath, appendContent, 'utf8');
+    }
+
+    /**
+     * 将长期语义记忆同步更新到官方工作区的 MEMORY.md 对应区块
+     */
+    public syncToWorkspaceGlobalMemory(workspaceDir: string, semanticMd: string): void {
+        if (!workspaceDir) return;
+        this.ensureDirExists(workspaceDir);
+        
+        const filePath = path.join(workspaceDir, 'MEMORY.md');
+        let currentContent = '';
+        if (fs.existsSync(filePath)) {
+            currentContent = fs.readFileSync(filePath, 'utf8');
+        }
+
+        const BLOCK_START = '<!-- COMPANION_MEMORY_START -->';
+        const BLOCK_END = '<!-- COMPANION_MEMORY_END -->';
+        const wrappedSemantic = `${BLOCK_START}\n## 伴侣记忆系统 (Companion Memory)\n\n${semanticMd}\n${BLOCK_END}`;
+
+        if (currentContent.includes(BLOCK_START) && currentContent.includes(BLOCK_END)) {
+            // 正则替换该区块
+            const regex = new RegExp(`${BLOCK_START}[\\s\\S]*?${BLOCK_END}`, 'g');
+            currentContent = currentContent.replace(regex, wrappedSemantic);
+        } else {
+            // 在末尾追加
+            if (currentContent && !currentContent.endsWith('\n\n')) {
+                currentContent += '\n\n';
+            }
+            currentContent += wrappedSemantic + '\n';
+        }
+
+        fs.writeFileSync(filePath, currentContent, 'utf8');
+    }
 }

@@ -84,14 +84,37 @@ export default class CognitiveMemorySkill implements Skill {
         });
         
         // 同时提取语义知识并合并到 Markdown 知识库
+        let finalSemanticMd = '';
         const newFacts = await this.cognitive.extractSemanticKnowledge(snapshotStr);
         if (newFacts.length > 0) {
             const existingMd = this.storage.readSemanticKnowledge();
-            const consolidatedMd = await this.cognitive.consolidateKnowledgeTree(existingMd, newFacts);
-            this.storage.writeSemanticKnowledge(consolidatedMd);
+            finalSemanticMd = await this.cognitive.consolidateKnowledgeTree(existingMd, newFacts);
+            this.storage.writeSemanticKnowledge(finalSemanticMd);
+        } else {
+            finalSemanticMd = this.storage.readSemanticKnowledge();
+        }
+
+        // 方案A桥接写入：同步到官方工作区
+        if (memoryConfig.enableWorkspaceBridge && memoryConfig.openclawWorkspaceDir) {
+            try {
+                this.storage.appendToWorkspaceDailyMemory(memoryConfig.openclawWorkspaceDir, snapshotStr);
+                // 仅在有新知识更新时才重写全局 MEMORY.md
+                if (newFacts.length > 0) {
+                    this.storage.syncToWorkspaceGlobalMemory(memoryConfig.openclawWorkspaceDir, finalSemanticMd);
+                }
+            } catch (err) {
+                console.error('[openclaw-him-memory] Workspace bridge sync error:', err);
+            }
         }
         
-        return { success: true, message: 'Snapshot and semantic knowledge updated.', data: snapshotStr };
+        return { 
+            success: true, 
+            message: 'Snapshot and semantic knowledge updated.', 
+            data: {
+                snapshot: snapshotStr,
+                semanticKnowledge: finalSemanticMd
+            }
+        };
 
       case 'life_tick':
         // 由 Cron 调用的自主思考与消息发送决策
